@@ -8,7 +8,7 @@
 var CALENDLY_URL = "https://calendly.com/tstsandeep/30min";
 
 /* STEP 2 — paste your form endpoint URL (Google Apps Script / n8n / Formspree). See README. */
-var LEAD_ENDPOINT = "";
+var LEAD_ENDPOINT = "https://script.google.com/macros/s/AKfycbxgHh0mO59A8SptDJmf8TsuyqIJc6TBIzhOpE3W8gPiWdvaGecu6vfisdCToVQO1jZw/exec";
 
 (function () {
   document.documentElement.classList.add('js'); // enables reveal animations
