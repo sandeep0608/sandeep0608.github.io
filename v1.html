@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sandeep Tharakaram — AI-Powered Marketing & Automation</title>
+<meta name="description" content="Freelance AI-powered marketing, content, and automation services by Sandeep Tharakaram.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --bg: #F6F7F4; --surface: #FFFFFF; --surface-2: #FBFCF9; --fg: #15181C;
+    --muted: #5A6570; --line: #E3E7E1; --accent: #0E7F74; --accent-2: #B76E12;
+    --accent-ink: #FFFFFF; --shadow: 0 1px 2px rgba(20,24,28,.04), 0 8px 24px rgba(20,24,28,.05);
+    --font-display: 'Bricolage Grotesque','Segoe UI',system-ui,sans-serif;
+    --font-body: 'IBM Plex Sans',system-ui,-apple-system,sans-serif;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:#0E1115; --surface:#171B21; --surface-2:#13171C; --fg:#ECEEF0; --muted:#9BA6B1;
+      --line:#272D34; --accent:#2CB9A9; --accent-2:#E3A24A; --accent-ink:#06201C;
+      --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.35); color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg:#0E1115; --surface:#171B21; --surface-2:#13171C; --fg:#ECEEF0; --muted:#9BA6B1;
+    --line:#272D34; --accent:#2CB9A9; --accent-2:#E3A24A; --accent-ink:#06201C;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.35); color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin:0; background: var(--bg); color: var(--fg); font-family: var(--font-body); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  img { max-width: 100%; }
+  .wrap { max-width: 1040px; margin: 0 auto; padding-left: max(20px, env(safe-area-inset-left,0px)); padding-right: max(20px, env(safe-area-inset-right,0px)); }
+  h1,h2,h3 { font-family: var(--font-display); font-weight:600; line-height:1.1; text-wrap:balance; margin:0; }
+  p { margin:0; }
+  a { color: var(--accent); }
+  .eyebrow { font-size:.8rem; font-weight:600; letter-spacing:.12em; text-transform:uppercase; color:var(--accent); margin:0; }
+  .hero { padding-block: clamp(56px,10vw,104px) clamp(40px,7vw,72px); }
+  .hero h1 { font-size: clamp(2.8rem,9vw,5rem); font-weight:700; letter-spacing:-.02em; margin-top:14px; }
+  .hero .lede { font-size: clamp(1.1rem,2.6vw,1.4rem); color:var(--muted); max-width:40ch; margin-top:22px; }
+  .meta-row { display:flex; flex-wrap:wrap; gap:10px; margin-top:26px; }
+  .chip { font-size:.85rem; color:var(--muted); border:1px solid var(--line); border-radius:999px; padding:6px 14px; background:var(--surface-2); }
+  .btn { display:inline-block; background:var(--accent); color:var(--accent-ink); font-family:var(--font-display); font-weight:600; font-size:1rem; text-decoration:none; padding:13px 26px; border-radius:10px; border:0; cursor:pointer; transition:transform .15s ease, filter .15s ease; }
+  .btn:hover { filter:brightness(1.06); transform:translateY(-1px); }
+  .btn[disabled] { opacity:.6; cursor:default; transform:none; }
+  .hero .btn { margin-top:30px; }
+  section { padding-block: clamp(40px,7vw,64px); }
+  .section-head { max-width:46ch; margin-bottom:34px; }
+  .section-head h2 { font-size: clamp(1.7rem,4.5vw,2.4rem); letter-spacing:-.01em; }
+  .section-head p { color:var(--muted); margin-top:12px; font-size:1.05rem; }
+  .divider { height:1px; background:var(--line); border:0; margin:0; }
+  .grid { display:grid; grid-template-columns:repeat(2,1fr); gap:18px; }
+  .card { background:var(--surface); border:1px solid var(--line); border-radius:16px; padding:26px; box-shadow:var(--shadow); display:flex; flex-direction:column; gap:12px; }
+  .card .kicker { font-size:.72rem; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--accent-2); }
+  .card h3 { font-size:1.3rem; }
+  .card .desc { color:var(--muted); }
+  .card ul { margin:4px 0 0; padding:0; list-style:none; display:flex; flex-wrap:wrap; gap:6px; }
+  .card li { font-size:.82rem; color:var(--fg); background:var(--surface-2); border:1px solid var(--line); border-radius:7px; padding:4px 9px; }
+  .ideal { font-size:.9rem; color:var(--muted); margin-top:auto; padding-top:6px; }
+  .ideal b { color:var(--fg); font-weight:600; }
+  .stats { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; }
+  .stat { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:22px; }
+  .stat .num { font-family:var(--font-display); font-weight:700; font-size:clamp(1.9rem,5vw,2.6rem); color:var(--accent); letter-spacing:-.02em; font-variant-numeric:tabular-nums; }
+  .stat .lab { font-size:.9rem; color:var(--muted); margin-top:6px; }
+  .steps { display:grid; grid-template-columns:repeat(4,1fr); gap:18px; }
+  .step { display:flex; flex-direction:column; gap:8px; }
+  .step .n { font-family:var(--font-display); font-weight:700; font-size:1rem; color:var(--accent-ink); background:var(--accent); width:34px; height:34px; border-radius:9px; display:flex; align-items:center; justify-content:center; }
+  .step h3 { font-size:1.1rem; }
+  .step p { color:var(--muted); font-size:.95rem; }
+  .two-col { display:grid; grid-template-columns:1.1fr .9fr; gap:40px; align-items:start; }
+  .pkgs { display:flex; flex-direction:column; gap:14px; }
+  .pkg { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:20px 22px; }
+  .pkg h3 { font-size:1.15rem; display:flex; align-items:baseline; justify-content:space-between; gap:12px; }
+  .pkg h3 span { font-family:var(--font-body); font-size:.8rem; font-weight:600; color:var(--accent-2); letter-spacing:.04em; text-transform:uppercase; }
+  .pkg p { color:var(--muted); margin-top:6px; font-size:.95rem; }
+  .why { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:18px; }
+  .why li { display:flex; gap:12px; }
+  .why .tick { color:var(--accent); flex:none; margin-top:2px; }
+  .why b { font-family:var(--font-display); font-weight:600; }
+  .why span.t { color:var(--muted); font-size:.95rem; display:block; }
+  .contact { background:var(--surface); border:1px solid var(--line); border-radius:20px; padding:clamp(28px,5vw,48px); box-shadow:var(--shadow); }
+  .contact h2 { font-size:clamp(1.8rem,4.5vw,2.5rem); }
+  .contact p.sub { color:var(--muted); margin-top:12px; max-width:48ch; }
+  .form { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:28px; }
+  .field { display:flex; flex-direction:column; gap:6px; min-width:0; }
+  .field.full, .form .full { grid-column:1 / -1; }
+  label { font-size:.82rem; font-weight:600; color:var(--fg); }
+  input, select, textarea { font-family:var(--font-body); font-size:1rem; color:var(--fg); background:var(--surface-2); border:1px solid var(--line); border-radius:10px; padding:11px 13px; width:100%; }
+  input:focus, select:focus, textarea:focus { outline:2px solid var(--accent); outline-offset:1px; border-color:var(--accent); }
+  textarea { resize:vertical; }
+  .formmsg { margin-top:14px; font-size:.95rem; min-height:1.2em; }
+  .formmsg.ok { color:var(--accent); }
+  .formmsg.err { color:#C0392B; }
+  .contact-list { display:flex; flex-wrap:wrap; gap:14px; margin-top:30px; padding-top:26px; border-top:1px solid var(--line); }
+  .cline { display:flex; align-items:center; gap:10px; background:var(--surface-2); border:1px solid var(--line); border-radius:10px; padding:11px 15px; font-size:.98rem; }
+  .cline .k { color:var(--muted); font-size:.8rem; text-transform:uppercase; letter-spacing:.06em; }
+  .cline .v { font-weight:500; color:var(--fg); user-select:all; word-break:break-all; }
+  .cline a.v { text-decoration:none; }
+  footer { padding-block:40px 56px; color:var(--muted); font-size:.85rem; }
+  a:focus-visible, .btn:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+  @media (max-width:760px) { .grid,.stats,.steps,.form { grid-template-columns:1fr; } .stats { grid-template-columns:repeat(2,1fr); } .two-col { grid-template-columns:1fr; gap:32px; } }
+  @media (prefers-reduced-motion: reduce) { * { transition:none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <p class="eyebrow">AI-Powered Marketing &amp; Automation</p>
+    <h1>Sandeep Tharakaram</h1>
+    <p class="lede">I help startups and small businesses grow with AI-accelerated marketing, content, and automation — the output of a full team, from one reliable partner.</p>
+    <div class="meta-row">
+      <span class="chip">8+ years in marketing</span>
+      <span class="chip">AI &amp; tech industry</span>
+      <span class="chip">Bengaluru · Remote worldwide</span>
+    </div>
+    <a class="btn" href="#contact">Start a project</a>
+  </header>
+
+  <hr class="divider">
+
+  <section id="services">
+    <div class="section-head">
+      <p class="eyebrow">Services</p>
+      <h2>What I can do for you</h2>
+      <p>Six ways I help businesses move faster — each delivered with marketing craft and AI leverage.</p>
+    </div>
+    <div class="grid">
+      <article class="card"><span class="kicker">Content</span><h3>Content &amp; Copywriting</h3><p class="desc">Words that rank and convert, in your brand's voice.</p><ul><li>Blog &amp; SEO articles</li><li>Website &amp; landing copy</li><li>Product descriptions</li><li>Email &amp; newsletters</li><li>Ad &amp; social copy</li></ul><p class="ideal"><b>Ideal for:</b> businesses that need steady, on-brand content without hiring in-house.</p></article>
+      <article class="card"><span class="kicker">AI &amp; Automation</span><h3>AI Enablement &amp; Automation</h3><p class="desc">Put AI to work on the repetitive parts of your business.</p><ul><li>Custom chatbots</li><li>n8n &amp; Zapier workflows</li><li>AI tool setup</li><li>Process automation</li></ul><p class="ideal"><b>Ideal for:</b> teams that want AI's time savings without a technical hire.</p></article>
+      <article class="card"><span class="kicker">Growth</span><h3>Social &amp; Email Marketing</h3><p class="desc">An always-on presence, handled for you and measured.</p><ul><li>Content calendars</li><li>Campaigns &amp; nurture flows</li><li>Scheduling</li><li>Monthly reporting</li></ul><p class="ideal"><b>Ideal for:</b> brands that want consistent channels without doing it themselves.</p></article>
+      <article class="card"><span class="kicker">Careers</span><h3>Resume &amp; LinkedIn Writing</h3><p class="desc">Get past the filters and into the interview.</p><ul><li>ATS-optimized resumes</li><li>LinkedIn profiles</li><li>Cover letters</li></ul><p class="ideal"><b>Ideal for:</b> professionals and job seekers leveling up.</p></article>
+      <article class="card"><span class="kicker">Collateral</span><h3>Decks, Reports &amp; Documents</h3><p class="desc">Polished, professional collateral — fast.</p><ul><li>Pitch &amp; sales decks</li><li>One-pagers</li><li>Proposals</li><li>Reports</li></ul><p class="ideal"><b>Ideal for:</b> founders and teams who need sharp documents on a deadline.</p></article>
+      <article class="card"><span class="kicker">Research</span><h3>Research &amp; Lead Generation</h3><p class="desc">Know your market and fill your pipeline.</p><ul><li>Market &amp; competitor research</li><li>ICP &amp; personas</li><li>Prospect lists</li><li>Data summaries</li></ul><p class="ideal"><b>Ideal for:</b> sales teams and founders building pipeline.</p></article>
+    </div>
+  </section>
+
+  <section id="results">
+    <div class="section-head"><p class="eyebrow">Track record</p><h2>Results from past work</h2></div>
+    <div class="stats">
+      <div class="stat"><div class="num">10&times;</div><div class="lab">Lead-to-signup conversion lift (0.15% &rarr; 1.5%)</div></div>
+      <div class="stat"><div class="num">130K+</div><div class="lab">Views from 26 published articles</div></div>
+      <div class="stat"><div class="num">26% / 5%</div><div class="lab">Email open / click-through rates</div></div>
+      <div class="stat"><div class="num">8+ yrs</div><div class="lab">Marketing across AI &amp; tech</div></div>
+    </div>
+  </section>
+
+  <section id="process">
+    <div class="section-head"><p class="eyebrow">How I work</p><h2>Simple, no surprises</h2></div>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><h3>Discovery</h3><p>A quick call to understand your goals, audience, and what success looks like.</p></div>
+      <div class="step"><div class="n">2</div><h3>Proposal</h3><p>Clear scope, timeline, and price agreed before any work begins.</p></div>
+      <div class="step"><div class="n">3</div><h3>Delivery</h3><p>Fast turnaround — AI-accelerated, human-refined, quality-checked.</p></div>
+      <div class="step"><div class="n">4</div><h3>Iterate</h3><p>Revisions until it's right, then a clean handoff.</p></div>
+    </div>
+  </section>
+
+  <section id="engage">
+    <div class="two-col">
+      <div>
+        <div class="section-head" style="margin-bottom:22px"><p class="eyebrow">Ways to work together</p><h2>Engagements</h2></div>
+        <div class="pkgs">
+          <div class="pkg"><h3>Project <span>One-off</span></h3><p>A single deliverable — a content batch, a deck, a resume, or an automation. Billed per project.</p></div>
+          <div class="pkg"><h3>Monthly <span>Retainer</span></h3><p>Ongoing content, social, or marketing support on a predictable monthly basis.</p></div>
+          <div class="pkg"><h3>Custom <span>Let's scope it</span></h3><p>Mix and match services, or something bigger. We'll scope it to fit your goals and budget.</p></div>
+        </div>
+      </div>
+      <div>
+        <div class="section-head" style="margin-bottom:22px"><p class="eyebrow">Why me</p><h2>What you get</h2></div>
+        <ul class="why">
+          <li><span class="tick">&#10003;</span><div><b>Marketing craft + AI fluency</b><span class="t">I use AI to deliver faster and better — not to cut corners.</span></div></li>
+          <li><span class="tick">&#10003;</span><div><b>I speak business and tech</b><span class="t">Years inside AI companies, plus a Computer Science background.</span></div></li>
+          <li><span class="tick">&#10003;</span><div><b>Data-driven</b><span class="t">Decisions and reports backed by real numbers.</span></div></li>
+          <li><span class="tick">&#10003;</span><div><b>Reliable &amp; responsive</b><span class="t">Clear scope, fast turnaround, no surprises.</span></div></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="contact">
+    <div class="contact">
+      <p class="eyebrow">Get in touch</p>
+      <h2>Let's talk about your project</h2>
+      <p class="sub">Tell me what you're working on and I'll come back with a clear scope and a tailored quote — usually within a day.</p>
+
+      <form id="leadForm" novalidate>
+        <div class="field"><label for="name">Name *</label><input id="name" name="name" autocomplete="name" required></div>
+        <div class="field"><label for="email">Email *</label><input id="email" name="email" type="email" autocomplete="email" required></div>
+        <div class="field"><label for="phone">Phone / WhatsApp</label><input id="phone" name="phone" autocomplete="tel"></div>
+        <div class="field"><label for="company">Company</label><input id="company" name="company" autocomplete="organization"></div>
+        <div class="field"><label for="service">Service you're interested in</label>
+          <select id="service" name="service">
+            <option value="">Select a service</option>
+            <option>Content &amp; Copywriting</option>
+            <option>AI Enablement &amp; Automation</option>
+            <option>Social &amp; Email Marketing</option>
+            <option>Resume &amp; LinkedIn Writing</option>
+            <option>Decks, Reports &amp; Documents</option>
+            <option>Research &amp; Lead Generation</option>
+            <option>Something else</option>
+          </select>
+        </div>
+        <div class="field"><label for="budget">Budget (optional)</label><input id="budget" name="budget"></div>
+        <div class="field full"><label for="message">Tell me about your project *</label><textarea id="message" name="message" rows="4" required></textarea></div>
+        <input type="text" name="company_website" id="hp" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute; left:-9999px; width:1px; height:1px; opacity:0;">
+        <div class="full"><button type="submit" class="btn" id="submitBtn">Send enquiry</button></div>
+        <p class="formmsg" id="formMsg" role="status" aria-live="polite"></p>
+      </form>
+
+      <div class="contact-list">
+        <div class="cline"><span class="k">Email</span><span class="v">tstsandeep@gmail.com</span></div>
+        <div class="cline"><span class="k">Phone / WhatsApp</span><span class="v">+91 99160 74751</span></div>
+        <div class="cline"><span class="k">LinkedIn</span><a class="v" href="https://www.linkedin.com/in/sandeep-tharakaram" target="_blank" rel="noopener">in/sandeep-tharakaram</a></div>
+      </div>
+    </div>
+  </section>
+
+  <footer>© <span id="yr"></span> Sandeep Tharakaram · AI-powered marketing, content &amp; automation · Bengaluru, India</footer>
+</div>
+
+<script>
+  /* =========================================================================
+     STEP 1 — paste your endpoint URL between the quotes below.
+     This is the Google Apps Script Web App URL from the SETUP guide
+     (it can also be an n8n webhook URL or a Formspree URL).
+     Until you add it, the form validates but shows a "not configured" note.
+     ========================================================================= */
+  var LEAD_ENDPOINT = "";
+
+  document.getElementById('yr').textContent = new Date().getFullYear();
+
+  (function () {
+    var form = document.getElementById('leadForm');
+    var msg = document.getElementById('formMsg');
+    var btn = document.getElementById('submitBtn');
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      msg.className = 'formmsg';
+      msg.textContent = '';
+
+      // Honeypot: if filled, it's a bot — pretend success, send nothing.
+      if (document.getElementById('hp').value) { showOk(); return; }
+
+      var data = {
+        name: form.name.value.trim(),
+        email: form.email.value.trim(),
+        phone: form.phone.value.trim(),
+        company: form.company.value.trim(),
+        service: form.service.value,
+        budget: form.budget.value.trim(),
+        message: form.message.value.trim(),
+        page: location.href
+      };
+
+      if (!data.name || !data.email || !data.message) {
+        msg.className = 'formmsg err';
+        msg.textContent = 'Please fill in your name, email, and a short message.';
+        return;
+      }
+
+      if (!LEAD_ENDPOINT) {
+        msg.className = 'formmsg err';
+        msg.textContent = 'Form not connected yet — add your endpoint URL in index.html (see SETUP guide). Meanwhile, email tstsandeep@gmail.com.';
+        return;
+      }
+
+      btn.disabled = true;
+      var original = btn.textContent;
+      btn.textContent = 'Sending…';
+
+      fetch(LEAD_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(data)
+      })
+      .then(function () { showOk(); form.reset(); })
+      .catch(function () {
+        msg.className = 'formmsg err';
+        msg.textContent = 'Something went wrong sending that. Please email tstsandeep@gmail.com directly.';
+      })
+      .finally(function () { btn.disabled = false; btn.textContent = original; });
+    });
+
+    function showOk() {
+      msg.className = 'formmsg ok';
+      msg.textContent = 'Thanks — your enquiry is in. I\'ll get back to you within a day.';
+    }
+  })();
+</script>
+</body>
+</html>
