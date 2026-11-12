@@ -1,0 +1,1560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Chrono-Raptor: Odyssey</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+        }
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #090a0f;
+            font-family: 'Outfit', sans-serif;
+            color: #ffffff;
+        }
+        #game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+        .glass-panel {
+            background: rgba(15, 18, 30, 0.55);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+        .glass-pill {
+            background: rgba(20, 24, 38, 0.65);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .glass-pill:hover {
+            background: rgba(35, 42, 66, 0.8);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+        }
+        .glass-pill:active {
+            transform: translateY(1px);
+        }
+        .mono-num {
+            font-family: 'Space Mono', monospace;
+        }
+        .glow-text {
+            text-shadow: 0 0 20px rgba(255, 180, 100, 0.5);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #ff7e5f 0%, #feb47b 100%);
+            color: #0f121e;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+            box-shadow: 0 0 25px rgba(255, 126, 95, 0.45);
+            transition: all 0.25s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 0 35px rgba(255, 126, 95, 0.75);
+        }
+        .btn-primary:active {
+            transform: translateY(1px) scale(0.99);
+        }
+        /* Mobile touch zone indicator */
+        .touch-zone {
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+        @media (max-width: 768px) {
+            .touch-zone.active {
+                opacity: 0.4;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- Top Glassmorphic HUD -->
+    <div class="absolute top-0 left-0 right-0 p-4 md:p-6 flex flex-wrap justify-between items-start gap-3 pointer-events-none z-20">
+        <!-- Left: Brand & Controls / Biome Selector -->
+        <div class="flex flex-wrap items-center gap-2 pointer-events-auto">
+            <div class="glass-pill px-3.5 py-2 rounded-2xl flex items-center gap-2.5">
+                <span class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse" id="theme-dot"></span>
+                <span class="text-xs uppercase tracking-widest text-white/70 font-semibold hidden sm:inline">Biome</span>
+                <select id="biomeSelect" class="bg-transparent text-xs md:text-sm font-semibold text-white focus:outline-none cursor-pointer pr-1">
+                    <option value="auto" class="bg-slate-900 text-white">Dynamic Odyssey (Cycle)</option>
+                    <option value="0" class="bg-slate-900 text-amber-300">Golden Hour Canyon</option>
+                    <option value="1" class="bg-slate-900 text-fuchsia-300">Twilight Synthwave</option>
+                    <option value="2" class="bg-slate-900 text-cyan-300">Starlight Midnight</option>
+                    <option value="3" class="bg-slate-900 text-emerald-300">Mystic Emerald Dawn</option>
+                </select>
+            </div>
+
+            <!-- Weather Selector -->
+            <button id="weatherBtn" class="glass-pill px-3.5 py-2 rounded-2xl flex items-center gap-2 text-xs md:text-sm font-semibold text-white/90" title="Switch Weather Effect">
+                <span id="weatherIcon">✨</span>
+                <span id="weatherLabel" class="hidden sm:inline">Fireflies</span>
+            </button>
+
+            <!-- Audio Toggle -->
+            <button id="muteBtn" class="glass-pill p-2.5 rounded-2xl flex items-center justify-center text-white/90" title="Toggle Audio">
+                <svg id="soundOnIcon" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 md:w-5 md:h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                    <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+                </svg>
+                <svg id="soundOffIcon" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 md:w-5 md:h-5 hidden text-rose-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                    <line x1="23" y1="9" x2="17" y2="15"></line>
+                    <line x1="17" y1="9" x2="23" y2="15"></line>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Right: Score, Speed & High Score -->
+        <div class="flex items-center gap-2 md:gap-3 pointer-events-auto ml-auto">
+            <div class="glass-pill px-3.5 py-1.5 rounded-2xl flex flex-col items-end">
+                <span class="text-[10px] uppercase tracking-widest text-white/50 font-semibold">Velocity</span>
+                <span id="speedDisplay" class="mono-num text-xs md:text-sm font-bold text-cyan-300">1.0x</span>
+            </div>
+            <div class="glass-pill px-4 py-1.5 rounded-2xl flex flex-col items-end">
+                <span class="text-[10px] uppercase tracking-widest text-white/50 font-semibold">Best</span>
+                <span id="highScoreDisplay" class="mono-num text-xs md:text-base font-bold text-amber-300">00000</span>
+            </div>
+            <div class="glass-pill px-4 py-1.5 rounded-2xl flex flex-col items-end border-white/25">
+                <span class="text-[10px] uppercase tracking-widest text-white/60 font-semibold">Distance</span>
+                <span id="scoreDisplay" class="mono-num text-sm md:text-lg font-bold text-white">00000</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Start / Title Screen Overlay -->
+    <div id="startModal" class="absolute inset-0 flex items-center justify-center p-4 z-30 transition-opacity duration-500">
+        <div class="glass-panel max-w-md w-full rounded-3xl p-6 md:p-8 text-center relative overflow-hidden">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/15 text-amber-300 text-xs font-semibold tracking-widest uppercase mb-4">
+                <span>✦ Endless Horizon Runner</span>
+            </div>
+            <h1 class="text-3xl md:text-5xl font-extrabold tracking-tight mb-2 glow-text">
+                CHRONO<span class="font-light text-amber-300">RAPTOR</span>
+            </h1>
+            <p class="text-white/70 text-sm md:text-base mb-6 leading-relaxed">
+                Sprint across shifting monolithic landscapes with your spirit cyber-raptor. Leap over radiant crystal clusters and glide beneath patrolling sky-drones.
+            </p>
+
+            <!-- Controls Guide -->
+            <div class="grid grid-cols-2 gap-3 mb-7 text-left">
+                <div class="bg-white/5 border border-white/10 rounded-2xl p-3.5">
+                    <div class="text-xs uppercase tracking-wider text-amber-300 font-bold mb-1">Leap / Double Jump</div>
+                    <div class="text-xs text-white/80">Space, W, Up Arrow, or Tap Right Side</div>
+                </div>
+                <div class="bg-white/5 border border-white/10 rounded-2xl p-3.5">
+                    <div class="text-xs uppercase tracking-wider text-cyan-300 font-bold mb-1">Phase Crouch / Dive</div>
+                    <div class="text-xs text-white/80">Down Arrow, S, or Hold Left Side</div>
+                </div>
+            </div>
+
+            <button id="startBtn" class="btn-primary w-full py-3.5 rounded-2xl text-sm md:text-base uppercase cursor-pointer">
+                Begin Odyssey
+            </button>
+            <p class="text-[11px] text-white/40 mt-3">Press SPACE or Tap anywhere on the button to launch</p>
+        </div>
+    </div>
+
+    <!-- Game Over Modal -->
+    <div id="gameOverModal" class="absolute inset-0 flex items-center justify-center p-4 z-30 hidden opacity-0 transition-opacity duration-300">
+        <div class="glass-panel max-w-sm w-full rounded-3xl p-6 md:p-8 text-center">
+            <div class="w-12 h-12 rounded-2xl bg-rose-500/20 border border-rose-400/30 flex items-center justify-center mx-auto mb-3 text-rose-300">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                </svg>
+            </div>
+            <h2 class="text-2xl md:text-3xl font-extrabold tracking-tight mb-1">SIGNAL INTERRUPTED</h2>
+            <p id="newRecordBadge" class="text-xs uppercase tracking-widest text-amber-300 font-bold mb-5 hidden">★ New Distance Record ★</p>
+            <p id="standardSubtext" class="text-xs text-white/60 mb-5">The monoliths claimed your stride</p>
+
+            <div class="grid grid-cols-2 gap-3 mb-6">
+                <div class="bg-white/5 border border-white/10 rounded-2xl p-3">
+                    <div class="text-[10px] uppercase tracking-widest text-white/50">Distance</div>
+                    <div id="finalScore" class="mono-num text-xl font-bold text-white mt-0.5">00000</div>
+                </div>
+                <div class="bg-white/5 border border-white/10 rounded-2xl p-3">
+                    <div class="text-[10px] uppercase tracking-widest text-white/50">Best Run</div>
+                    <div id="finalBest" class="mono-num text-xl font-bold text-amber-300 mt-0.5">00000</div>
+                </div>
+            </div>
+
+            <button id="restartBtn" class="btn-primary w-full py-3.5 rounded-2xl text-sm md:text-base uppercase cursor-pointer">
+                Run Again
+            </button>
+            <p class="text-[11px] text-white/40 mt-3">Press SPACE or Tap to instant-relaunch</p>
+        </div>
+    </div>
+
+    <!-- Subtle Mobile Touch Hints -->
+    <div id="touchHints" class="touch-zone absolute bottom-5 left-0 right-0 flex justify-between px-6 z-10">
+        <div class="glass-pill px-3 py-1.5 rounded-xl text-xs text-cyan-200">Hold Left: Crouch / Dive</div>
+        <div class="glass-pill px-3 py-1.5 rounded-xl text-xs text-amber-200">Tap Right: Jump</div>
+    </div>
+</div>
+
+<script>
+/**
+ * CHRONO-RAPTOR: ODYSSEY
+ * Atmospheric 2.5D Endless Runner with Dynamic Biomes, Parallax Mountains,
+ * Procedural Cyber-Spirit Dino Animation, and Synthesized Web Audio.
+ */
+
+// ============================================================================
+// 1. SYNTHESIZED WEB AUDIO ENGINE
+// ============================================================================
+class SoundEngine {
+    constructor() {
+        this.ctx = null;
+        this.muted = false;
+    }
+
+    init() {
+        if (!this.ctx) {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (AudioCtx) {
+                this.ctx = new AudioCtx();
+            }
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+            this.ctx.resume();
+        }
+    }
+
+    toggleMute() {
+        this.muted = !this.muted;
+        return this.muted;
+    }
+
+    playJump(isDouble = false) {
+        if (this.muted || !this.ctx) return;
+        try {
+            const now = this.ctx.currentTime;
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = isDouble ? 'triangle' : 'sine';
+            const startFreq = isDouble ? 340 : 220;
+            const endFreq = isDouble ? 760 : 540;
+
+            osc.frequency.setValueAtTime(startFreq, now);
+            osc.frequency.exponentialRampToValueAtTime(endFreq, now + 0.16);
+
+            gain.gain.setValueAtTime(0.16, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.18);
+        } catch (e) {}
+    }
+
+    playLand() {
+        if (this.muted || !this.ctx) return;
+        try {
+            const now = this.ctx.currentTime;
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(110, now);
+            osc.frequency.exponentialRampToValueAtTime(42, now + 0.09);
+
+            gain.gain.setValueAtTime(0.14, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.09);
+        } catch (e) {}
+    }
+
+    playDive() {
+        if (this.muted || !this.ctx) return;
+        try {
+            const now = this.ctx.currentTime;
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(360, now);
+            osc.frequency.exponentialRampToValueAtTime(120, now + 0.12);
+
+            gain.gain.setValueAtTime(0.08, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.12);
+        } catch (e) {}
+    }
+
+    playMilestone() {
+        if (this.muted || !this.ctx) return;
+        try {
+            const notes = [523.25, 659.25, 783.99, 1046.5]; // C5, E5, G5, C6
+            notes.forEach((freq, idx) => {
+                const now = this.ctx.currentTime + idx * 0.065;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(freq, now);
+
+                gain.gain.setValueAtTime(0.12, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.35);
+            });
+        } catch (e) {}
+    }
+
+    playCrash() {
+        if (this.muted || !this.ctx) return;
+        try {
+            const now = this.ctx.currentTime;
+            // Noise burst + sub drop
+            const bufferSize = this.ctx.sampleRate * 0.35;
+            const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (this.ctx.sampleRate * 0.1));
+            }
+
+            const noise = this.ctx.createBufferSource();
+            noise.buffer = buffer;
+
+            const filter = this.ctx.createBiquadFilter();
+            filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(850, now);
+            filter.frequency.exponentialRampToValueAtTime(90, now + 0.35);
+
+            const gain = this.ctx.createGain();
+            gain.gain.setValueAtTime(0.28, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+
+            noise.connect(filter);
+            filter.connect(gain);
+            gain.connect(this.ctx.destination);
+            noise.start(now);
+        } catch (e) {}
+    }
+}
+
+// ============================================================================
+// 2. BIOME & COLOR PALETTE DEFINITIONS
+// ============================================================================
+const BIOMES = [
+    {
+        name: "Golden Hour Canyon",
+        skyTop: [26, 17, 48],
+        skyMid: [158, 55, 78],
+        skyBot: [255, 165, 92],
+        sunColor: [255, 224, 150],
+        sunGlow: [255, 130, 70],
+        celestialY: 0.38,
+        starAlpha: 0.15,
+        mtnFar: [64, 28, 62],
+        mtnMid: [42, 18, 46],
+        mtnNear: [24, 11, 30],
+        fogColor: [255, 145, 95],
+        groundTop: [18, 9, 25],
+        groundAccent: [255, 150, 80],
+        raptorBody: "#160d24",
+        raptorAccent: "#ff9e5e",
+        obstacleGlow: "#ff6b4a",
+        obstacleCore: "#ffd1b3"
+    },
+    {
+        name: "Twilight Synthwave",
+        skyTop: [10, 8, 36],
+        skyMid: [68, 20, 98],
+        skyBot: [219, 58, 142],
+        sunColor: [255, 105, 180],
+        sunGlow: [190, 40, 255],
+        celestialY: 0.46,
+        starAlpha: 0.65,
+        mtnFar: [42, 14, 74],
+        mtnMid: [26, 10, 52],
+        mtnNear: [14, 6, 32],
+        fogColor: [210, 60, 180],
+        groundTop: [11, 5, 26],
+        groundAccent: [0, 245, 212],
+        raptorBody: "#0d071e",
+        raptorAccent: "#00f5d4",
+        obstacleGlow: "#ff2a85",
+        obstacleCore: "#ffe0f0"
+    },
+    {
+        name: "Starlight Midnight",
+        skyTop: [3, 7, 22],
+        skyMid: [12, 26, 58],
+        skyBot: [28, 68, 112],
+        sunColor: [220, 240, 255],
+        sunGlow: [90, 175, 255],
+        celestialY: 0.25,
+        starAlpha: 1.0,
+        mtnFar: [16, 33, 64],
+        mtnMid: [10, 22, 45],
+        mtnNear: [6, 13, 28],
+        fogColor: [70, 160, 235],
+        groundTop: [5, 10, 22],
+        groundAccent: [86, 207, 225],
+        raptorBody: "#071021",
+        raptorAccent: "#64dfdf",
+        obstacleGlow: "#3a86ff",
+        obstacleCore: "#d9f0ff"
+    },
+    {
+        name: "Mystic Emerald Dawn",
+        skyTop: [8, 28, 36],
+        skyMid: [24, 78, 82],
+        skyBot: [118, 200, 147],
+        sunColor: [235, 255, 210],
+        sunGlow: [82, 183, 136],
+        celestialY: 0.32,
+        starAlpha: 0.35,
+        mtnFar: [22, 58, 62],
+        mtnMid: [15, 40, 44],
+        mtnNear: [9, 25, 29],
+        fogColor: [116, 198, 157],
+        groundTop: [7, 20, 24],
+        groundAccent: [128, 255, 219],
+        raptorBody: "#07191e",
+        raptorAccent: "#80ffdb",
+        obstacleGlow: "#52b788",
+        obstacleCore: "#e9ffef"
+    }
+];
+
+function lerp(a, b, t) {
+    return a + (b - a) * t;
+}
+
+function lerpRGB(c1, c2, t) {
+    const r = Math.round(lerp(c1[0], c2[0], t));
+    const g = Math.round(lerp(c1[1], c2[1], t));
+    const b = Math.round(lerp(c1[2], c2[2], t));
+    return `rgb(${r}, ${g}, ${b})`;
+}
+
+function lerpRGBA(c1, c2, t, alpha) {
+    const r = Math.round(lerp(c1[0], c2[0], t));
+    const g = Math.round(lerp(c1[1], c2[1], t));
+    const b = Math.round(lerp(c1[2], c2[2], t));
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+// ============================================================================
+// 3. MAIN GAME ENGINE
+// ============================================================================
+class ChronoRaptorGame {
+    constructor() {
+        this.canvas = document.getElementById('gameCanvas');
+        this.ctx = this.canvas.getContext('2d');
+        this.audio = new SoundEngine();
+
+        // UI Elements
+        this.scoreEl = document.getElementById('scoreDisplay');
+        this.highScoreEl = document.getElementById('highScoreDisplay');
+        this.speedEl = document.getElementById('speedDisplay');
+        this.startModal = document.getElementById('startModal');
+        this.gameOverModal = document.getElementById('gameOverModal');
+        this.finalScoreEl = document.getElementById('finalScore');
+        this.finalBestEl = document.getElementById('finalBest');
+        this.newRecordBadge = document.getElementById('newRecordBadge');
+        this.standardSubtext = document.getElementById('standardSubtext');
+        this.touchHints = document.getElementById('touchHints');
+
+        // Game State
+        this.state = 'START'; // 'START', 'PLAYING', 'CRASHING', 'GAMEOVER'
+        this.score = 0;
+        this.highScore = parseInt(localStorage.getItem('chronoRaptorHighScore') || '0', 10);
+        this.highScoreEl.textContent = this.formatScore(this.highScore);
+
+        this.baseSpeed = 430; // px per second
+        this.speedMultiplier = 1.0;
+        this.lastMilestone = 0;
+
+        // Biome & Weather
+        this.lockedBiome = 'auto';
+        this.biomeProgress = 0; // Continuous float 0..4
+        this.weatherTypes = ['FIREFLIES', 'RAIN', 'EMBERS'];
+        this.weatherIndex = 0;
+
+        // Camera & Effects
+        this.shakeTime = 0;
+        this.shakeMagnitude = 0;
+        this.timeScale = 1.0;
+        this.flashAlpha = 0;
+
+        // Input state
+        this.keys = { jump: false, duck: false };
+        this.jumpHoldTimer = 0;
+
+        // Entities & Environment
+        this.groundY = 0;
+        this.raptor = null;
+        this.obstacles = [];
+        this.obstacleTimer = 0;
+        this.dustParticles = [];
+        this.weatherParticles = [];
+        this.trailPoints = [];
+        this.stars = [];
+        this.shootingStars = [];
+        this.parallaxLayers = [];
+        this.floraDetails = [];
+
+        this.resize();
+        this.initEnvironment();
+        this.resetPlayer();
+        this.bindEvents();
+
+        this.lastFrameTime = performance.now();
+        requestAnimationFrame((t) => this.loop(t));
+    }
+
+    formatScore(val) {
+        return Math.floor(val).toString().padStart(5, '0');
+    }
+
+    resize() {
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        this.width = window.innerWidth;
+        this.height = window.innerHeight;
+        this.canvas.width = this.width * dpr;
+        this.canvas.height = this.height * dpr;
+        this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+        this.groundY = Math.floor(this.height * 0.78);
+        if (this.raptor) {
+            this.raptor.x = Math.max(85, Math.min(200, this.width * 0.16));
+            if (this.raptor.grounded) {
+                this.raptor.y = this.groundY;
+            }
+        }
+    }
+
+    initEnvironment() {
+        // Twinkling Stars
+        this.stars = [];
+        for (let i = 0; i < 110; i++) {
+            this.stars.push({
+                x: Math.random() * 2000,
+                y: Math.random() * 0.62,
+                radius: Math.random() * 1.7 + 0.4,
+                phase: Math.random() * Math.PI * 2,
+                speed: Math.random() * 2 + 1
+            });
+        }
+
+        // 3 Mountain & Ruin Parallax Layers
+        this.parallaxLayers = [
+            this.createMountainLayer(0.12, 150, 260, 90, false),
+            this.createMountainLayer(0.26, 95, 175, 70, true),
+            this.createMountainLayer(0.48, 45, 95, 55, false)
+        ];
+
+        // Foreground Grass / Glowing Flora silhouettes
+        this.floraDetails = [];
+        for (let i = 0; i < 36; i++) {
+            this.floraDetails.push({
+                x: (i / 36) * (this.width + 400),
+                height: 8 + Math.random() * 16,
+                tilt: (Math.random() - 0.5) * 8,
+                hasOrb: Math.random() > 0.65
+            });
+        }
+
+        // Ambient Weather Particles
+        this.weatherParticles = [];
+        for (let i = 0; i < 65; i++) {
+            this.weatherParticles.push(this.createWeatherParticle(true));
+        }
+    }
+
+    createMountainLayer(speedFactor, minH, maxH, stepWidth, includeMonoliths) {
+        const points = [];
+        const totalWidth = 2800;
+        let x = 0;
+        while (x <= totalWidth + stepWidth) {
+            const h = minH + Math.random() * (maxH - minH);
+            const hasSpire = includeMonoliths && Math.random() > 0.78;
+            points.push({ x, h, hasSpire, spireH: h + 35 + Math.random() * 45 });
+            x += stepWidth + Math.random() * 45;
+        }
+        return { speedFactor, points, offset: 0, totalWidth };
+    }
+
+    createWeatherParticle(randomX = false) {
+        return {
+            x: randomX ? Math.random() * this.width : Math.random() * (this.width + 250),
+            y: Math.random() * this.groundY,
+            size: 1.5 + Math.random() * 2.8,
+            vx: -20 - Math.random() * 40,
+            vy: (Math.random() - 0.5) * 20,
+            phase: Math.random() * Math.PI * 2
+        };
+    }
+
+    resetPlayer() {
+        const startX = Math.max(85, Math.min(200, this.width * 0.16));
+        this.raptor = {
+            x: startX,
+            y: this.groundY,
+            vy: 0,
+            width: 54,
+            height: 56,
+            crouchHeight: 32,
+            grounded: true,
+            crouching: false,
+            jumpsRemaining: 2,
+            runCycle: 0,
+            pitch: 0,
+            scarfWave: 0
+        };
+        this.trailPoints = [];
+    }
+
+    bindEvents() {
+        window.addEventListener('resize', () => this.resize());
+
+        // Keyboard Controls
+        window.addEventListener('keydown', (e) => {
+            if (['Space', 'ArrowUp', 'KeyW'].includes(e.code)) {
+                e.preventDefault();
+                if (this.state === 'START') {
+                    this.startGame();
+                } else if (this.state === 'GAMEOVER') {
+                    this.startGame();
+                } else if (this.state === 'PLAYING') {
+                    if (!this.keys.jump) {
+                        this.triggerJump();
+                    }
+                    this.keys.jump = true;
+                }
+            }
+            if (['ArrowDown', 'KeyS'].includes(e.code)) {
+                e.preventDefault();
+                if (this.state === 'PLAYING') {
+                    if (!this.keys.duck && !this.raptor.grounded) {
+                        this.raptor.vy = Math.max(this.raptor.vy, 760);
+                        this.audio.playDive();
+                    }
+                    this.keys.duck = true;
+                }
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            if (['Space', 'ArrowUp', 'KeyW'].includes(e.code)) {
+                this.keys.jump = false;
+                this.jumpHoldTimer = 0;
+            }
+            if (['ArrowDown', 'KeyS'].includes(e.code)) {
+                this.keys.duck = false;
+            }
+        });
+
+        // Mouse & Touch Controls on Canvas
+        this.canvas.addEventListener('pointerdown', (e) => {
+            if (this.state !== 'PLAYING') return;
+            e.preventDefault();
+            const isLeftSide = e.clientX < this.width * 0.38;
+            if (isLeftSide && e.pointerType === 'touch') {
+                this.keys.duck = true;
+                if (!this.raptor.grounded) {
+                    this.raptor.vy = Math.max(this.raptor.vy, 760);
+                    this.audio.playDive();
+                }
+            } else {
+                this.triggerJump();
+                this.keys.jump = true;
+            }
+        });
+
+        window.addEventListener('pointerup', () => {
+            this.keys.jump = false;
+            this.keys.duck = false;
+            this.jumpHoldTimer = 0;
+        });
+
+        // UI Buttons
+        document.getElementById('startBtn').addEventListener('click', () => this.startGame());
+        document.getElementById('restartBtn').addEventListener('click', () => this.startGame());
+
+        document.getElementById('biomeSelect').addEventListener('change', (e) => {
+            this.lockedBiome = e.target.value;
+            e.target.blur();
+        });
+
+        document.getElementById('weatherBtn').addEventListener('click', (e) => {
+            this.weatherIndex = (this.weatherIndex + 1) % this.weatherTypes.length;
+            const mode = this.weatherTypes[this.weatherIndex];
+            const iconEl = document.getElementById('weatherIcon');
+            const labelEl = document.getElementById('weatherLabel');
+            if (mode === 'FIREFLIES') {
+                iconEl.textContent = '✨';
+                labelEl.textContent = 'Fireflies';
+            } else if (mode === 'RAIN') {
+                iconEl.textContent = '🌧️';
+                labelEl.textContent = 'Neon Rain';
+            } else {
+                iconEl.textContent = '🔥';
+                labelEl.textContent = 'Solar Embers';
+            }
+            e.currentTarget.blur();
+        });
+
+        document.getElementById('muteBtn').addEventListener('click', (e) => {
+            const isMuted = this.audio.toggleMute();
+            document.getElementById('soundOnIcon').classList.toggle('hidden', isMuted);
+            document.getElementById('soundOffIcon').classList.toggle('hidden', !isMuted);
+            e.currentTarget.blur();
+        });
+    }
+
+    startGame() {
+        this.audio.init();
+        this.state = 'PLAYING';
+        this.score = 0;
+        this.lastMilestone = 0;
+        this.speedMultiplier = 1.0;
+        this.timeScale = 1.0;
+        this.obstacles = [];
+        this.dustParticles = [];
+        this.obstacleTimer = 1.1;
+        this.resetPlayer();
+
+        this.startModal.classList.add('opacity-0', 'pointer-events-none');
+        setTimeout(() => this.startModal.classList.add('hidden'), 300);
+
+        this.gameOverModal.classList.add('opacity-0', 'pointer-events-none');
+        setTimeout(() => this.gameOverModal.classList.add('hidden'), 300);
+
+        this.touchHints.classList.add('active');
+        setTimeout(() => this.touchHints.classList.remove('active'), 4000);
+
+        this.triggerJump();
+    }
+
+    triggerJump() {
+        if (this.raptor.grounded) {
+            this.raptor.vy = -650;
+            this.raptor.grounded = false;
+            this.raptor.jumpsRemaining = 1;
+            this.jumpHoldTimer = 0.18;
+            this.audio.playJump(false);
+            this.spawnDustBurst(this.raptor.x, this.groundY, 12, '#ffffff');
+        } else if (this.raptor.jumpsRemaining > 0) {
+            this.raptor.vy = -560;
+            this.raptor.jumpsRemaining = 0;
+            this.jumpHoldTimer = 0.12;
+            this.audio.playJump(true);
+            this.spawnDustBurst(this.raptor.x, this.raptor.y - 15, 14, '#00f5d4');
+        }
+    }
+
+    spawnDustBurst(x, y, count, color) {
+        for (let i = 0; i < count; i++) {
+            const angle = Math.PI + (Math.random() - 0.5) * 1.4;
+            const speed = 40 + Math.random() * 160;
+            this.dustParticles.push({
+                x: x + (Math.random() - 0.5) * 18,
+                y: y - Math.random() * 6,
+                vx: Math.cos(angle) * speed - 60,
+                vy: -Math.abs(Math.sin(angle) * speed) - 20,
+                size: 2.5 + Math.random() * 4.5,
+                alpha: 0.9,
+                life: 0.4 + Math.random() * 0.35,
+                maxLife: 0.75,
+                color
+            });
+        }
+    }
+
+    spawnObstacle() {
+        const currentSpeed = this.baseSpeed * this.speedMultiplier;
+        const roll = Math.random();
+        let obs;
+
+        if (roll < 0.38) {
+            // Glowing Crystal Cluster
+            const h = 46 + Math.random() * 26;
+            const w = 34 + Math.random() * 20;
+            obs = {
+                type: 'CRYSTAL',
+                x: this.width + 80,
+                y: this.groundY,
+                width: w,
+                height: h,
+                phase: Math.random() * Math.PI * 2
+            };
+        } else if (roll < 0.70) {
+            // Ancient Floating Monolith Gate / Obelisk
+            const h = 58 + Math.random() * 28;
+            obs = {
+                type: 'MONOLITH',
+                x: this.width + 80,
+                y: this.groundY,
+                width: 32,
+                height: h,
+                phase: Math.random() * Math.PI * 2
+            };
+        } else {
+            // Aerial Cyber-Pterodactyl / Horizon Drone
+            // Two possible heights: high (crouch under) or mid (jump over or crouch)
+            const highAltitude = Math.random() > 0.42;
+            const flyY = highAltitude ? this.groundY - 52 : this.groundY - 28;
+            obs = {
+                type: 'DRONE',
+                x: this.width + 80,
+                y: flyY,
+                baseY: flyY,
+                width: 54,
+                height: 26,
+                phase: Math.random() * Math.PI * 2
+            };
+        }
+
+        this.obstacles.push(obs);
+
+        // Next spawn interval scales inversely with speed
+        const minGap = Math.max(0.68, 1.35 - (this.speedMultiplier - 1) * 0.32);
+        const maxGap = Math.max(1.15, 2.05 - (this.speedMultiplier - 1) * 0.4);
+        this.obstacleTimer = minGap + Math.random() * (maxGap - minGap);
+    }
+
+    getCurrentPalette() {
+        let indexA, indexB, t;
+        if (this.lockedBiome !== 'auto') {
+            indexA = parseInt(this.lockedBiome, 10);
+            indexB = indexA;
+            t = 0;
+        } else {
+            const cycle = this.biomeProgress % BIOMES.length;
+            indexA = Math.floor(cycle);
+            indexB = (indexA + 1) % BIOMES.length;
+            t = cycle - indexA;
+        }
+        const b1 = BIOMES[indexA];
+        const b2 = BIOMES[indexB];
+
+        return {
+            skyTop: lerpRGB(b1.skyTop, b2.skyTop, t),
+            skyMid: lerpRGB(b1.skyMid, b2.skyMid, t),
+            skyBot: lerpRGB(b1.skyBot, b2.skyBot, t),
+            sunColor: lerpRGB(b1.sunColor, b2.sunColor, t),
+            sunGlow: lerpRGBA(b1.sunGlow, b2.sunGlow, t, 0.42),
+            celestialY: lerp(b1.celestialY, b2.celestialY, t),
+            starAlpha: lerp(b1.starAlpha, b2.starAlpha, t),
+            mtnFar: lerpRGB(b1.mtnFar, b2.mtnFar, t),
+            mtnMid: lerpRGB(b1.mtnMid, b2.mtnMid, t),
+            mtnNear: lerpRGB(b1.mtnNear, b2.mtnNear, t),
+            fogUpper: lerpRGBA(b1.fogColor, b2.fogColor, t, 0.24),
+            fogLower: lerpRGBA(b1.fogColor, b2.fogColor, t, 0.0),
+            groundTop: lerpRGB(b1.groundTop, b2.groundTop, t),
+            groundAccent: lerpRGB(b1.groundAccent, b2.groundAccent, t),
+            raptorBody: b1.raptorBody,
+            raptorAccent: t < 0.5 ? b1.raptorAccent : b2.raptorAccent,
+            obstacleGlow: t < 0.5 ? b1.obstacleGlow : b2.obstacleGlow,
+            obstacleCore: t < 0.5 ? b1.obstacleCore : b2.obstacleCore
+        };
+    }
+
+    update(dt) {
+        const scaledDt = dt * this.timeScale;
+        const worldSpeed = (this.state === 'PLAYING' || this.state === 'CRASHING')
+            ? this.baseSpeed * this.speedMultiplier * this.timeScale
+            : this.baseSpeed * 0.28;
+
+        // Screen shake decay
+        if (this.shakeTime > 0) {
+            this.shakeTime -= dt;
+        }
+        if (this.flashAlpha > 0) {
+            this.flashAlpha = Math.max(0, this.flashAlpha - dt * 2.2);
+        }
+
+        // Parallax layers scrolling
+        this.parallaxLayers.forEach(layer => {
+            layer.offset = (layer.offset + worldSpeed * layer.speedFactor * dt) % layer.totalWidth;
+        });
+
+        // Foreground flora scrolling
+        this.floraDetails.forEach(item => {
+            item.x -= worldSpeed * dt;
+            if (item.x < -40) {
+                item.x += this.width + 400;
+            }
+        });
+
+        // Random Shooting Stars at Night
+        if (Math.random() < 0.012 && this.shootingStars.length < 2) {
+            this.shootingStars.push({
+                x: Math.random() * this.width * 0.8 + this.width * 0.2,
+                y: Math.random() * this.groundY * 0.35,
+                vx: -480 - Math.random() * 220,
+                vy: 160 + Math.random() * 100,
+                life: 0.55
+            });
+        }
+        for (let i = this.shootingStars.length - 1; i >= 0; i--) {
+            const s = this.shootingStars[i];
+            s.x += s.vx * dt;
+            s.y += s.vy * dt;
+            s.life -= dt;
+            if (s.life <= 0) this.shootingStars.splice(i, 1);
+        }
+
+        // Update Weather Particles
+        const weatherMode = this.weatherTypes[this.weatherIndex];
+        this.weatherParticles.forEach(p => {
+            p.phase += dt * 3;
+            if (weatherMode === 'RAIN') {
+                p.x -= (worldSpeed * 0.6 + 260) * dt;
+                p.y += 680 * dt;
+            } else if (weatherMode === 'EMBERS') {
+                p.x -= (worldSpeed * 0.35 + 60) * dt;
+                p.y -= (35 + Math.sin(p.phase) * 25) * dt;
+            } else {
+                // Fireflies
+                p.x -= worldSpeed * 0.2 * dt;
+                p.y += Math.sin(p.phase) * 18 * dt;
+            }
+
+            if (p.x < -20) p.x = this.width + 40;
+            if (p.y > this.groundY) {
+                p.y = 10;
+                p.x = Math.random() * (this.width + 200);
+            }
+            if (p.y < 0) p.y = this.groundY - 10;
+        });
+
+        // Update Dust Particles
+        for (let i = this.dustParticles.length - 1; i >= 0; i--) {
+            const p = this.dustParticles[i];
+            p.x += p.vx * scaledDt;
+            p.y += p.vy * scaledDt;
+            p.vy += 420 * scaledDt;
+            p.life -= scaledDt;
+            if (p.life <= 0) {
+                this.dustParticles.splice(i, 1);
+            }
+        }
+
+        if (this.state === 'START') {
+            this.raptor.runCycle += dt * 7;
+            this.raptor.scarfWave += dt * 10;
+            return;
+        }
+
+        if (this.state === 'CRASHING') {
+            this.timeScale = Math.max(0.12, this.timeScale - dt * 1.4);
+            return;
+        }
+
+        if (this.state !== 'PLAYING') return;
+
+        // Score & Biome Progression
+        this.score += dt * 18 * this.speedMultiplier;
+        this.speedMultiplier = Math.min(2.45, 1.0 + (this.score / 1200) * 0.45);
+        this.biomeProgress = (this.score / 450); // Smoothly shifts biome every ~450m
+
+        const currentMilestone = Math.floor(this.score / 250);
+        if (currentMilestone > this.lastMilestone) {
+            this.lastMilestone = currentMilestone;
+            this.audio.playMilestone();
+            this.flashAlpha = 0.22;
+        }
+
+        this.scoreEl.textContent = this.formatScore(this.score);
+        this.speedEl.textContent = `${this.speedMultiplier.toFixed(1)}x`;
+
+        // Player Physics
+        this.raptor.crouching = this.keys.duck && this.raptor.grounded;
+        if (this.keys.jump && this.jumpHoldTimer > 0) {
+            this.raptor.vy -= 950 * dt;
+            this.jumpHoldTimer -= dt;
+        }
+
+        const gravity = this.keys.duck ? 3200 : 1950;
+        this.raptor.vy += gravity * dt;
+        this.raptor.y += this.raptor.vy * dt;
+
+        if (this.raptor.y >= this.groundY) {
+            if (!this.raptor.grounded) {
+                this.audio.playLand();
+                this.spawnDustBurst(this.raptor.x, this.groundY, 9, '#ffffff');
+            }
+            this.raptor.y = this.groundY;
+            this.raptor.vy = 0;
+            this.raptor.grounded = true;
+            this.raptor.jumpsRemaining = 2;
+            this.raptor.pitch = lerp(this.raptor.pitch, 0, dt * 16);
+        } else {
+            this.raptor.pitch = Math.max(-0.35, Math.min(0.45, this.raptor.vy * 0.0006));
+        }
+
+        this.raptor.runCycle += dt * 14 * this.speedMultiplier;
+        this.raptor.scarfWave += dt * 16 * this.speedMultiplier;
+
+        // Running footstep dust
+        if (this.raptor.grounded && Math.random() < 0.35) {
+            this.dustParticles.push({
+                x: this.raptor.x - 14,
+                y: this.groundY - 2,
+                vx: -worldSpeed * 0.45 + (Math.random() - 0.5) * 30,
+                vy: -20 - Math.random() * 45,
+                size: 2 + Math.random() * 3,
+                life: 0.28,
+                maxLife: 0.28,
+                color: 'rgba(255,255,255,0.55)'
+            });
+        }
+
+        // Energy Scarf Trail
+        const activeHeight = this.raptor.crouching ? this.raptor.crouchHeight : this.raptor.height;
+        this.trailPoints.unshift({
+            x: this.raptor.x - 12,
+            y: this.raptor.y - activeHeight * 0.72 + Math.sin(this.raptor.scarfWave) * 4
+        });
+        if (this.trailPoints.length > 14) {
+            this.trailPoints.pop();
+        }
+        for (let i = 1; i < this.trailPoints.length; i++) {
+            this.trailPoints[i].x -= worldSpeed * dt * 0.75;
+        }
+
+        // Obstacles Spawning & Movement
+        this.obstacleTimer -= dt;
+        if (this.obstacleTimer <= 0) {
+            this.spawnObstacle();
+        }
+
+        for (let i = this.obstacles.length - 1; i >= 0; i--) {
+            const obs = this.obstacles[i];
+            obs.x -= worldSpeed * dt;
+            obs.phase += dt * 6;
+            if (obs.type === 'DRONE') {
+                obs.y = obs.baseY + Math.sin(obs.phase) * 9;
+            }
+
+            // Collision Check (forgiving hitbox)
+            if (this.checkCollision(this.raptor, obs)) {
+                this.handleCrash();
+                break;
+            }
+
+            if (obs.x + obs.width < -100) {
+                this.obstacles.splice(i, 1);
+            }
+        }
+    }
+
+    checkCollision(raptor, obs) {
+        const rH = raptor.crouching ? raptor.crouchHeight : raptor.height;
+        const rBox = {
+            left: raptor.x - raptor.width * 0.32,
+            right: raptor.x + raptor.width * 0.36,
+            top: raptor.y - rH + 6,
+            bottom: raptor.y - 4
+        };
+
+        let oBox;
+        if (obs.type === 'DRONE') {
+            oBox = {
+                left: obs.x - obs.width * 0.38,
+                right: obs.x + obs.width * 0.38,
+                top: obs.y - obs.height + 4,
+                bottom: obs.y - 2
+            };
+        } else {
+            oBox = {
+                left: obs.x - obs.width * 0.36,
+                right: obs.x + obs.width * 0.36,
+                top: obs.y - obs.height + 8,
+                bottom: obs.y
+            };
+        }
+
+        return (
+            rBox.left < oBox.right &&
+            rBox.right > oBox.left &&
+            rBox.top < oBox.bottom &&
+            rBox.bottom > oBox.top
+        );
+    }
+
+    handleCrash() {
+        this.state = 'CRASHING';
+        this.audio.playCrash();
+        this.shakeTime = 0.45;
+        this.shakeMagnitude = 14;
+        this.flashAlpha = 0.65;
+
+        // Dramatic impact burst
+        this.spawnDustBurst(this.raptor.x + 10, this.raptor.y - 25, 34, '#ff6b4a');
+        this.spawnDustBurst(this.raptor.x + 10, this.raptor.y - 25, 20, '#00f5d4');
+
+        const finalScoreInt = Math.floor(this.score);
+        const isNewRecord = finalScoreInt > this.highScore;
+        if (isNewRecord) {
+            this.highScore = finalScoreInt;
+            localStorage.setItem('chronoRaptorHighScore', this.highScore.toString());
+            this.highScoreEl.textContent = this.formatScore(this.highScore);
+        }
+
+        setTimeout(() => {
+            this.state = 'GAMEOVER';
+            this.finalScoreEl.textContent = this.formatScore(finalScoreInt);
+            this.finalBestEl.textContent = this.formatScore(this.highScore);
+            this.newRecordBadge.classList.toggle('hidden', !isNewRecord);
+            this.standardSubtext.classList.toggle('hidden', isNewRecord);
+
+            this.gameOverModal.classList.remove('hidden');
+            requestAnimationFrame(() => {
+                this.gameOverModal.classList.remove('opacity-0', 'pointer-events-none');
+            });
+        }, 650);
+    }
+
+    // ========================================================================
+    // 4. RENDERING PIPELINE
+    // ========================================================================
+    draw() {
+        const ctx = this.ctx;
+        const pal = this.getCurrentPalette();
+
+        ctx.save();
+
+        // Screen Shake offset
+        if (this.shakeTime > 0) {
+            const dx = (Math.random() - 0.5) * this.shakeMagnitude;
+            const dy = (Math.random() - 0.5) * this.shakeMagnitude;
+            ctx.translate(dx, dy);
+        }
+
+        // 1. Dynamic Sky Gradient
+        const skyGrad = ctx.createLinearGradient(0, 0, 0, this.groundY);
+        skyGrad.addColorStop(0, pal.skyTop);
+        skyGrad.addColorStop(0.55, pal.skyMid);
+        skyGrad.addColorStop(1, pal.skyBot);
+        ctx.fillStyle = skyGrad;
+        ctx.fillRect(0, 0, this.width, this.height);
+
+        // 2. Twinkling Stars & Shooting Stars
+        if (pal.starAlpha > 0.05) {
+            this.stars.forEach(s => {
+                const twinkle = 0.4 + 0.6 * Math.sin(performance.now() * 0.002 * s.speed + s.phase);
+                ctx.fillStyle = `rgba(255, 255, 255, ${pal.starAlpha * twinkle})`;
+                ctx.beginPath();
+                ctx.arc(s.x % this.width, s.y * this.groundY, s.radius, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            this.shootingStars.forEach(s => {
+                ctx.strokeStyle = `rgba(255, 255, 255, ${s.life * pal.starAlpha * 1.5})`;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(s.x, s.y);
+                ctx.lineTo(s.x - s.vx * 0.08, s.y - s.vy * 0.08);
+                ctx.stroke();
+            });
+        }
+
+        // 3. Celestial Body (Glowing Sun / Synth Moon)
+        const sunX = this.width * 0.72;
+        const sunY = this.groundY * pal.celestialY;
+        const sunRadius = Math.min(this.width, this.height) * 0.11;
+
+        const haloGrad = ctx.createRadialGradient(sunX, sunY, sunRadius * 0.2, sunX, sunY, sunRadius * 2.8);
+        haloGrad.addColorStop(0, pal.sunGlow);
+        haloGrad.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = haloGrad;
+        ctx.beginPath();
+        ctx.arc(sunX, sunY, sunRadius * 2.8, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = pal.sunColor;
+        ctx.beginPath();
+        ctx.arc(sunX, sunY, sunRadius, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 4. Multi-Layered Parallax Mountains + Atmospheric Mist
+        const layerColors = [pal.mtnFar, pal.mtnMid, pal.mtnNear];
+        this.parallaxLayers.forEach((layer, idx) => {
+            ctx.fillStyle = layerColors[idx];
+            ctx.beginPath();
+            ctx.moveTo(0, this.groundY);
+
+            const pts = layer.points;
+            for (let repeat = 0; repeat < 2; repeat++) {
+                for (let i = 0; i < pts.length; i++) {
+                    const px = pts[i].x - layer.offset + repeat * layer.totalWidth;
+                    if (px < -200 || px > this.width + 200) continue;
+                    const py = this.groundY - pts[i].h;
+                    ctx.lineTo(px, py);
+
+                    // Draw Ancient Ruin Spire silhouette on mid layer
+                    if (pts[i].hasSpire) {
+                        ctx.lineTo(px + 6, this.groundY - pts[i].spireH);
+                        ctx.lineTo(px + 14, this.groundY - pts[i].spireH + 8);
+                        ctx.lineTo(px + 18, py + 4);
+                    }
+                }
+            }
+            ctx.lineTo(this.width, this.groundY);
+            ctx.closePath();
+            ctx.fill();
+
+            // Atmospheric Haze between mountain layers
+            const mistGrad = ctx.createLinearGradient(0, this.groundY - 120, 0, this.groundY);
+            mistGrad.addColorStop(0, pal.fogLower);
+            mistGrad.addColorStop(1, pal.fogUpper);
+            ctx.fillStyle = mistGrad;
+            ctx.fillRect(0, this.groundY - 120, this.width, 120);
+        });
+
+        // 5. Ambient Weather Particles
+        this.drawWeather(ctx, pal);
+
+        // 6. Ground Terrain & Glowing Rim
+        ctx.fillStyle = pal.groundTop;
+        ctx.fillRect(0, this.groundY, this.width, this.height - this.groundY);
+
+        // Glowing Horizon Rim Line
+        ctx.shadowColor = pal.groundAccent;
+        ctx.shadowBlur = 12;
+        ctx.strokeStyle = pal.groundAccent;
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.moveTo(0, this.groundY);
+        ctx.lineTo(this.width, this.groundY);
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        // Scrolling Foreground Grass & Bioluminescent Buds
+        this.floraDetails.forEach(item => {
+            ctx.strokeStyle = pal.groundTop;
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            ctx.moveTo(item.x, this.groundY);
+            ctx.quadraticCurveTo(item.x + item.tilt, this.groundY - item.height * 0.6, item.x + item.tilt * 1.5, this.groundY - item.height);
+            ctx.stroke();
+
+            if (item.hasOrb) {
+                ctx.fillStyle = pal.groundAccent;
+                ctx.beginPath();
+                ctx.arc(item.x + item.tilt * 1.5, this.groundY - item.height, 2.2, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        });
+
+        // 7. Obstacles (Crystals, Monoliths, Sky-Drones)
+        this.obstacles.forEach(obs => this.drawObstacle(ctx, obs, pal));
+
+        // 8. Dust & Impact Particles
+        this.dustParticles.forEach(p => {
+            const alpha = Math.max(0, p.life / p.maxLife);
+            ctx.fillStyle = p.color;
+            ctx.globalAlpha = alpha;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.fill();
+        });
+        ctx.globalAlpha = 1.0;
+
+        // 9. Procedural Spirit Cyber-Raptor & Energy Scarf
+        this.drawRaptor(ctx, pal);
+
+        // 10. Screen Flash Overlay (Milestones & Collision)
+        if (this.flashAlpha > 0) {
+            ctx.fillStyle = `rgba(255, 255, 255, ${this.flashAlpha})`;
+            ctx.fillRect(0, 0, this.width, this.height);
+        }
+
+        ctx.restore();
+    }
+
+    drawWeather(ctx, pal) {
+        const mode = this.weatherTypes[this.weatherIndex];
+        this.weatherParticles.forEach(p => {
+            if (mode === 'RAIN') {
+                ctx.strokeStyle = 'rgba(140, 220, 255, 0.42)';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.moveTo(p.x, p.y);
+                ctx.lineTo(p.x - 8, p.y + 18);
+                ctx.stroke();
+            } else if (mode === 'EMBERS') {
+                const glow = 0.5 + 0.5 * Math.sin(p.phase);
+                ctx.fillStyle = `rgba(255, 140, 60, ${0.4 + glow * 0.5})`;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size * 0.9, 0, Math.PI * 2);
+                ctx.fill();
+            } else {
+                // Fireflies
+                const pulse = 0.35 + 0.65 * Math.sin(p.phase);
+                ctx.fillStyle = pal.groundAccent;
+                ctx.globalAlpha = pulse * 0.75;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 1.0;
+            }
+        });
+    }
+
+    drawObstacle(ctx, obs, pal) {
+        ctx.save();
+        const pulse = 0.8 + 0.2 * Math.sin(obs.phase);
+        ctx.shadowColor = pal.obstacleGlow;
+        ctx.shadowBlur = 16 * pulse;
+
+        if (obs.type === 'CRYSTAL') {
+            // Radiant 3-Shard Crystal Cluster
+            const x = obs.x;
+            const y = obs.y;
+            const w = obs.width;
+            const h = obs.height;
+
+            ctx.fillStyle = pal.obstacleGlow;
+            // Center shard
+            ctx.beginPath();
+            ctx.moveTo(x - w * 0.28, y);
+            ctx.lineTo(x, y - h);
+            ctx.lineTo(x + w * 0.28, y);
+            ctx.closePath();
+            ctx.fill();
+
+            // Left tilted shard
+            ctx.beginPath();
+            ctx.moveTo(x - w * 0.5, y);
+            ctx.lineTo(x - w * 0.42, y - h * 0.68);
+            ctx.lineTo(x - w * 0.08, y);
+            ctx.closePath();
+            ctx.fill();
+
+            // Right tilted shard
+            ctx.beginPath();
+            ctx.moveTo(x + w * 0.08, y);
+            ctx.lineTo(x + w * 0.44, y - h * 0.74);
+            ctx.lineTo(x + w * 0.5, y);
+            ctx.closePath();
+            ctx.fill();
+
+            // Inner bright core facet
+            ctx.fillStyle = pal.obstacleCore;
+            ctx.beginPath();
+            ctx.moveTo(x - w * 0.1, y);
+            ctx.lineTo(x, y - h * 0.85);
+            ctx.lineTo(x + w * 0.1, y);
+            ctx.closePath();
+            ctx.fill();
+
+        } else if (obs.type === 'MONOLITH') {
+            // Ancient Dark Obelisk with Glowing Runes
+            const x = obs.x;
+            const y = obs.y;
+            const w = obs.width;
+            const h = obs.height;
+
+            ctx.fillStyle = pal.raptorBody;
+            ctx.strokeStyle = pal.obstacleGlow;
+            ctx.lineWidth = 2;
+
+            ctx.beginPath();
+            ctx.moveTo(x - w * 0.45, y);
+            ctx.lineTo(x - w * 0.35, y - h * 0.85);
+            ctx.lineTo(x, y - h);
+            ctx.lineTo(x + w * 0.35, y - h * 0.85);
+            ctx.lineTo(x + w * 0.45, y);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            // Glowing Center Rune Diamond
+            ctx.fillStyle = pal.obstacleCore;
+            ctx.beginPath();
+            ctx.moveTo(x, y - h * 0.72);
+            ctx.lineTo(x + 6, y - h * 0.58);
+            ctx.lineTo(x, y - h * 0.44);
+            ctx.lineTo(x - 6, y - h * 0.58);
+            ctx.closePath();
+            ctx.fill();
+
+        } else if (obs.type === 'DRONE') {
+            // Sleek Cyber-Pterodactyl / Winged Sentinel
+            const x = obs.x;
+            const y = obs.y - obs.height * 0.5;
+            const wingBeat = Math.sin(obs.phase * 2.2) * 14;
+
+            ctx.fillStyle = pal.raptorBody;
+            ctx.strokeStyle = pal.obstacleGlow;
+            ctx.lineWidth = 2;
+
+            ctx.beginPath();
+            // Beak tip
+            ctx.moveTo(x - obs.width * 0.5, y + 2);
+            // Upper crest
+            ctx.lineTo(x - 4, y - 8);
+            // Swept Wing Tip
+            ctx.lineTo(x + 10, y - 6 + wingBeat);
+            // Tail end
+            ctx.lineTo(x + obs.width * 0.5, y);
+            // Lower belly
+            ctx.lineTo(x - 6, y + 7);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            // Glowing Drone Eye
+            ctx.fillStyle = pal.obstacleCore;
+            ctx.beginPath();
+            ctx.arc(x - obs.width * 0.25, y, 3, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        ctx.restore();
+    }
+
+    drawRaptor(ctx, pal) {
+        const r = this.raptor;
+        ctx.save();
+
+        // 1. Flowing Energy Scarf / Tail Ribbon
+        if (this.trailPoints.length > 2) {
+            ctx.save();
+            ctx.shadowColor = pal.raptorAccent;
+            ctx.shadowBlur = 12;
+            ctx.strokeStyle = pal.raptorAccent;
+            ctx.lineCap = 'round';
+
+            for (let i = 0; i < this.trailPoints.length - 1; i++) {
+                const p1 = this.trailPoints[i];
+                const p2 = this.trailPoints[i + 1];
+                const ratio = 1 - i / this.trailPoints.length;
+                ctx.lineWidth = ratio * 6;
+                ctx.globalAlpha = ratio * 0.85;
+                ctx.beginPath();
+                ctx.moveTo(p1.x, p1.y);
+                ctx.lineTo(p2.x, p2.y);
+                ctx.stroke();
+            }
+            ctx.restore();
+        }
+
+        // Translate to Raptor Anchor
+        ctx.translate(r.x, r.y);
+        ctx.rotate(r.pitch);
+
+        const isCrouching = r.crouching;
+        const bodyH = isCrouching ? 24 : 38;
+        const headX = isCrouching ? 24 : 18;
+        const headY = isCrouching ? -24 : -46;
+
+        // Animated Legs
+        const legSwing = r.grounded ? Math.sin(r.runCycle) * 11 : 6;
+        ctx.strokeStyle = pal.raptorAccent;
+        ctx.lineWidth = 3.5;
+        ctx.lineCap = 'round';
+
+        // Back Leg
+        ctx.beginPath();
+        ctx.moveTo(-4, -16);
+        ctx.lineTo(-8 - legSwing * 0.5, -8);
+        ctx.lineTo(-4 - legSwing, 0);
+        ctx.stroke();
+
+        // Front Leg
+        ctx.beginPath();
+        ctx.moveTo(4, -16);
+        ctx.lineTo(2 + legSwing * 0.5, -8);
+        ctx.lineTo(6 + legSwing, 0);
+        ctx.stroke();
+
+        // Sleek Cyber-Raptor Silhouette Torso & Tail
+        ctx.fillStyle = pal.raptorBody;
+        ctx.strokeStyle = pal.raptorAccent;
+        ctx.lineWidth = 2;
+        ctx.shadowColor = pal.raptorAccent;
+        ctx.shadowBlur = 10;
+
+        ctx.beginPath();
+        // Tail tip
+        ctx.moveTo(-28, -bodyH + 6);
+        // Back spine
+        ctx.quadraticCurveTo(-6, -bodyH - 4, 12, -bodyH + 2);
+        // Neck & Snout
+        ctx.lineTo(headX - 4, headY - 6);
+        ctx.lineTo(headX + 14, headY + 2);
+        ctx.lineTo(headX + 2, headY + 8);
+        // Chest
+        ctx.quadraticCurveTo(14, -14, 4, -12);
+        // Underside of tail
+        ctx.quadraticCurveTo(-10, -12, -28, -bodyH + 6);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // Glowing Cyber Visor Eye
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.moveTo(headX, headY);
+        ctx.lineTo(headX + 8, headY + 1);
+        ctx.lineTo(headX + 2, headY + 4);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.restore();
+    }
+
+    loop(timestamp) {
+        const dt = Math.min(0.05, (timestamp - this.lastFrameTime) / 1000);
+        this.lastFrameTime = timestamp;
+
+        this.update(dt);
+        this.draw();
+
+        requestAnimationFrame((t) => this.loop(t));
+    }
+}
+
+// Start the game on window load
+window.onload = function () {
+    new ChronoRaptorGame();
+};
+</script>
+</body>
+</html>
